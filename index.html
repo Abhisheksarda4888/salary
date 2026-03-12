@@ -1789,7 +1789,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
             <div class="g-comp">
               <div class="g-comp-name">💼 Basic Salary</div>
               <span class="g-comp-law">Sec 15</span>
-              <div class="g-comp-desc">Fully taxable but essential — determines HRA, PF, Gratuity, NPS cap. Under Code on Wages 2019 (toggle in Step 1), Basic ≥ 50% of remuneration is mandatory. Wage Code OFF: 25–60% range. Wage Code ON: 50–65% range in optimizer.</div>
+              <div class="g-comp-desc">Fully taxable but essential — determines HRA, PF, Gratuity, NPS cap. Under Code on Wages 2019 (toggle in Step 1), Basic ≥ 50% of remuneration is mandatory. Wage Code OFF: 25–80% range. Wage Code ON: 50–80% range in optimizer.</div>
               <span class="g-tag t">Taxable</span>
             </div>
             <div class="g-comp">
@@ -2015,7 +2015,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
           </div>
           <div class="g-opt">
             <div class="g-opt-ttl">💼 What Is Professional Tax?</div>
-            <div class="g-opt-desc">Professional Tax is a state-level tax on employment income. Maximum ₹2,400/year (₹200/month). Deductible from gross salary in both regimes. This tool uses ₹2,400 as a standard provision.</div>
+            <div class="g-opt-desc">Professional Tax is a state-level tax on employment income (state-wise slab, usually up to ₹2,500/year). In this tool, you can enter your actual annual PT value from payroll records. It is deductible only in Old Regime and blocked in New Regime.</div>
           </div>
           <div class="g-opt">
             <div class="g-opt-ttl">🏦 What Happens with PF If Basic Exceeds ₹15,000/Month?</div>
@@ -2459,6 +2459,24 @@ body.has-mobile-bar { padding-bottom: 76px; }
             <button class="info-i" onclick="showTipText('Additional ₹50,000 under ITA 2025 Sec 124(3) (= old Sec 80CCD(1B)) over the ₹1.5L Sec 123 cap. Old Regime ONLY. Employer NPS [Sec 124(1)(b)/124(2)] is separate — available in BOTH regimes at 10%/14% of Basic+DA.')">i</button>
           </label>
           <div class="pfx"><span class="pfx-sym">₹</span><input type="number" id="npsEe" value="0" min="0"></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Annual Professional Tax (₹)
+            <button class="info-i" onclick="showTipText('Professional Tax is state-specific. Enter your actual annual PT deduction from payroll records. In Old Regime it is deductible from salary; in New Regime it is not allowed [Sec 202(2)(a)(iv)].')">i</button>
+          </label>
+          <div class="pfx"><span class="pfx-sym">₹</span><input type="number" id="profTax" value="2400" min="0" max="2500"></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">LTA Eligible Claim %
+            <button class="info-i" onclick="showTipText('LTA exemption is not automatic. Enter realistic claimability based on likely travel proofs and journey eligibility in the applicable 4-year block. 100% means full LTA claimed; 0% means no claim. This affects Old Regime only.')">i</button>
+          </label>
+          <div class="pfx"><input type="number" id="ltaClaimPct" value="100" min="0" max="100"><span class="pfx-sym">%</span></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Bill-backed Reimbursement %
+            <button class="info-i" onclick="showTipText('Mobile/Internet, Fuel and Uniform exemptions require bills / actual official use support. Enter realistic annual claimability %. 100% = fully bill-backed, lower % = partial support. Affects Old Regime exemptions only.')">i</button>
+          </label>
+          <div class="pfx"><input type="number" id="reimbClaimPct" value="100" min="0" max="100"><span class="pfx-sym">%</span></div>
         </div>
       </div>
 
@@ -3227,6 +3245,9 @@ function inputs(){
     hlInt:state.hasHL?(parseFloat(document.getElementById('hlAmt').value)||0):0,
     inv80c:Math.min(parseFloat(document.getElementById('inv80c').value)||0,150000),
     npsEeInput:Math.min(parseFloat(document.getElementById('npsEe').value)||0,50000),
+    profTax:Math.min(parseFloat(document.getElementById('profTax').value)||2400,2500),
+    ltaClaimPct:Math.max(0,Math.min(parseFloat(document.getElementById('ltaClaimPct')?.value)||100,100))/100,
+    reimbClaimPct:Math.max(0,Math.min(parseFloat(document.getElementById('reimbClaimPct')?.value)||100,100))/100,
     wageCode:state.wageCode,
   };
 }
@@ -3268,16 +3289,16 @@ function calcTaxFromComps(cArr,inp){
     hraExempt=Math.min(hra, Math.max(0,rentPd-base*0.10), base*(inp.metro?0.50:0.40));
   }
   // LTA — Schedule III Sl.8 [ITA 2025]: actual travel fare, 2 journeys in 4-yr block
-  const ltaExempt=lta;
+  const ltaExempt=Math.min(lta, Math.round(lta*(inp.ltaClaimPct??1)));
   // Meal Coupons — Rule 3(7)(iii): ₹50/meal×2 meals×22 days×12 = ₹26,400/yr
   // OLD REGIME ONLY — Sec 202(2)(c) ITA 2025 blocks all perquisite exemptions in New Regime
   const foodExempt=Math.min(food,26400); // only used in Old Regime calc below
   // Mobile/Telephone — Schedule III Sl.12 r/w Rule 2BB(1): actual bills for official use
-  const mobileExempt=mobile;
+  const mobileExempt=Math.min(mobile, Math.round(mobile*(inp.reimbClaimPct??1)));
   // Fuel/Vehicle — Schedule III Sl.12 r/w Rule 2BB(1)(B): ≤1600cc car = ₹1,800/mo = ₹21,600/yr
-  const fuelExempt=Math.min(fuel,21600);
+  const fuelExempt=Math.min(Math.min(fuel,21600), Math.round(Math.min(fuel,21600)*(inp.reimbClaimPct??1)));
   // Uniform — Schedule III Sl.12 r/w Rule 2BB(1): actual cost at workplace; ₹5,000/yr practical cap
-  const uniformExempt=Math.min(uniform,5000);
+  const uniformExempt=Math.min(Math.min(uniform,5000), Math.round(Math.min(uniform,5000)*(inp.reimbClaimPct??1)));
   // Children Education — Schedule III Sl.13 r/w Rule 2BB(2): ₹100/child/mo×2 children = ₹2,400/yr
   const educExempt=Math.min(educ,2400);
   // Hostel — Schedule III Sl.13 r/w Rule 2BB(2): ₹300/child/mo×2 children = ₹7,200/yr
@@ -3295,7 +3316,7 @@ function calcTaxFromComps(cArr,inp){
   const grossTaxOld=Math.max(0,grossSalary-totalOldExempt+excessOver75L);
 
   // OLD REGIME: Std Deduction ₹50,000 [Sec 19(1) Table Sl.2(b) ITA 2025] + Prof Tax [Sec 19(1) Sl.1]
-  const stdDedOld=50000, profTax=2400;
+  const stdDedOld=50000, profTax=inp.profTax||2400;
   const netOld=Math.max(0,grossTaxOld-stdDedOld-profTax);
 
   // OLD REGIME Chapter VI-A deductions [Chapter VIII ITA 2025]
@@ -3502,7 +3523,7 @@ function generateScenarios(){
   const npsMax = npsOn ? 14 : 0;
   const enabledMask = _allowEnabledMask();
   // New Wage Code: Basic must be ≥50% of total remuneration
-  // When ON: search 50–65%; When OFF: search 25–60%
+  // When ON: search 50–80%; When OFF: search 25–80%
   // Wage Code math: Basic ≥ 50% of "total remuneration"
   // Remuneration = grossSalary − pfEr − gratuity ≈ CTC × (1 − ~0.15) ≈ 0.85 × CTC
   // So Basic ≥ 50% of (0.85 × CTC) = 42.5% of CTC satisfies wage code.
@@ -4015,7 +4036,7 @@ function renderSlip(d){
 
   // Deductions from employee payslip
   const pfEeAnnual = d.pfEe||0;
-  const profTaxAnnual = 2400;
+  const profTaxAnnual = d.profTax||2400;
   const tdsAnnual = bestTax;
   const totalDedAnnual = pfEeAnnual + profTaxAnnual + tdsAnnual;
 
@@ -4263,7 +4284,7 @@ function showHowCalc(id){
     html=lawChip('ITA 2025 Schedule III Sl.8 | IT Rules | Old Regime only [Sec 202(2)(a)(i) blocks in New Regime]')+
     `<div class="calc-steps">`+
     step(1,'LTA in your salary',`LTA component = ₹${fmt(lta)}/year = ₹${fmt(Math.round(lta/12))}/month`)+
-    step(2,'Exemption (Old Regime)',`Exempt = Actual travel cost incurred\n(subject to ₹${fmt(lta)} maximum)\nAssumed full claim = ₹${fmt(ltaExempt)}/year`,
+    step(2,'Exemption (Old Regime)',`Exempt = Actual travel cost incurred\n(subject to ₹${fmt(lta)} maximum)\nClaimable as per your Step 1 LTA Eligible Claim % = ₹${fmt(ltaExempt)}/year`,
       'For 2 journeys per 4-year block (current block: 2022–2025). Economy air or AC 1st class rail. Family: spouse, max 2 children, dependent parents.')+
     step(3,'New Regime treatment',`LTA is fully taxable in New Regime.\nIf New Regime is chosen → ₹${fmt(lta)} is added to taxable income.`)+
     `</div>`+
@@ -4275,7 +4296,7 @@ function showHowCalc(id){
     const perMeal=50, mealsDay=2, days=22, months=12;
     const limit=perMeal*mealsDay*days*months;
     title='Meal Coupons Exemption Calculation';
-    html=lawChip('Rule 3(7)(iii), Income Tax Rules 1962 | Both Old & New Regime')+
+    html=lawChip('Rule 3(7)(iii), Income Tax Rules 1962 | Old Regime exemption only')+
     `<div class="calc-steps">`+
     step(1,'Statutory Exempt Limit Formula',
       `₹${perMeal}/meal × ${mealsDay} meals/day × ${days} working days × ${months} months\n= ₹${fmt(limit)}/year`,
@@ -4286,7 +4307,7 @@ function showHowCalc(id){
       food>limit?`⚠️ Your meal coupon (₹${fmt(food)}) exceeds the limit of ₹${fmt(limit)}. Excess ₹${fmt(food-limit)} is taxable.`:`Your coupon is within the exempt limit.`)+
     `</div>`+
     resultBox('Meal Coupon Exempt (Old Regime only — taxable in New Regime)', foodExempt,'green')+
-    `<div class="calc-note" style="margin-top:10px">🟢 One of the best perquisites — available in <strong>both Old & New Regime</strong>. Coupons must be non-transferable and usable only at food outlets (Sodexo, Zeta, etc.)</div>`;
+    `<div class="calc-note" style="margin-top:10px">🟢 Old Regime benefit only in this tool logic. In New Regime this amount is treated as taxable. Coupons must be non-transferable and usable only at food outlets (Sodexo, Zeta, etc.)</div>`;
   }
 
   else if(id==='mobile'){
@@ -4294,7 +4315,7 @@ function showHowCalc(id){
     html=lawChip('ITA 2025 Schedule III Sl.12 | IT Rules Rule 2BB | Old Regime only [Sec 202(2)(a)(ii) blocks in New Regime]')+
     `<div class="calc-steps">`+
     step(1,'Allowance in salary',`Mobile/Internet Allowance = ₹${fmt(mobile)}/year = ₹${fmt(Math.round(mobile/12))}/month`)+
-    step(2,'Old Regime exemption',`Exempt = Actual bills paid for official use\nActual bills amount = ₹${fmt(mobileExempt)}/year (full claim assumed)`,
+    step(2,'Old Regime exemption',`Exempt = Actual bills paid for official use\nActual bills amount = ₹${fmt(mobileExempt)}/year (scaled by Step 1 Bill-backed Reimbursement %)`,
       'Bills must be in employee\'s name or company-reimbursed. Must be for official/professional purpose. Keep original bills.')+
     step(3,'New Regime',`Fully taxable in New Regime. ₹${fmt(mobile)} added to taxable income if New Regime chosen.`)+
     `</div>`+
@@ -4408,7 +4429,7 @@ function renderLaws(d){
      <li><strong>New Regime [Sec 19(1) Sl.2(a)]:</strong> ₹75,000 or salary, whichever less</li>
      <li><strong>Old Regime [Sec 19(1) Sl.2(b)]:</strong> ₹50,000 or salary, whichever less</li></ul>
      No bills or proof needed. Flat deduction from gross taxable salary.<br>
-     <strong>Professional Tax [Sec 19(1) Sl.1]:</strong> Fully deductible in Old Regime. <strong>NOT allowed in New Regime</strong> — blocked by Sec 202(2)(a)(iv). <em>Note: ₹2,400/yr used here (Maharashtra maximum; most states ≤₹2,500).</em>
+     <strong>Professional Tax [Sec 19(1) Sl.1]:</strong> Fully deductible in Old Regime. <strong>NOT allowed in New Regime</strong> — blocked by Sec 202(2)(a)(iv). <em>Note: Uses the Annual Professional Tax entered in Step 1 (default ₹2,400).</em>
      <div class="law-note">🆕 ITA 2025: Std deduction now Sec 19(1) (was Sec 16(ia)). Amounts differ by regime — ₹75k New / ₹50k Old.</div>`},
     {t:'Section 123 — ₹1,50,000 Deduction (= old 80C)',r:'ITA 2025 Section 123 | Schedule XV | Old Regime only',
      b:`Deductions up to ₹1,50,000 for: EPF (employee share), PPF, ELSS Mutual Funds, LIC Premium, NSC, Home Loan Principal, Children Tuition Fees, 5-yr Tax Saving FD, SCSS. Items listed in Schedule XV. <strong>Not available in New Regime</strong> — Chapter VIII blocked by Sec 202(2)(a)(xii) except Sec 124(1), 124(2), 125(2) and 146.
@@ -4428,7 +4449,7 @@ function renderLaws(d){
      <strong>⚠ Old Regime only.</strong> In New Regime, Sec 202(2)(c) ITA 2025 blocks "any exemption for allowances or perquisite, called by any name" — meal coupons are a perquisite under Sec 17(1)(e) and are NOT exempt.
      <div class="law-note">ITA 2025 Sec 202(2)(c) explicitly disallows ALL perquisite exemptions in New Regime. ₹26,400 only in Old Regime.</div>`},
     {t:'Schedule III Sl.8 — LTA (= old Sec 10(5))',r:'ITA 2025 Schedule III Sl.8 | IT Rules | Old Regime only',
-     b:`Exempt for actual travel fare (economy air/AC 1st class rail) for <strong>2 journeys in a 4-year block</strong>. Block 2022–2025. Family = spouse, children (max 2 after 1-Oct-1998 for more), dependent parents/siblings. Amount cannot exceed actual fare. <em>Tool simplification: full LTA treated as exempt for optimization (assumes 2 journeys used).</em> <strong>Not in New Regime</strong> — Schedule III Sl.8 blocked by Sec 202(2)(a)(i).
+     b:`Exempt for actual travel fare (economy air/AC 1st class rail) for <strong>2 journeys in a 4-year block</strong>. Block 2022–2025. Family = spouse, children (max 2 after 1-Oct-1998 for more), dependent parents/siblings. Amount cannot exceed actual fare. <em>Tool mode: LTA exemption is scaled by Step 1 LTA Eligible Claim % to avoid overstatement.</em> <strong>Not in New Regime</strong> — Schedule III Sl.8 blocked by Sec 202(2)(a)(i).
      <div class="law-note">ITA 2025: Old Sec 10(5) → Schedule III Sl.8. No change in conditions.</div>`},
     {t:'Schedule XI Para 6 — Employer PF Exemption (= old Sec 10(12))',r:'ITA 2025 Schedule XI Para 6 | EPF Act 1952 | Both Regimes',
      b:`Employer's EPF contribution is taxable as deemed income if it exceeds <strong>12% of salary (Basic+DA)</strong> [Schedule XI Para 6]. Additionally, Sec 17(1)(h): aggregate of employer PF + NPS + Superannuation exceeding <strong>₹7,50,000/year</strong> is taxable as a perquisite. Applies in <strong>both regimes</strong> as a salary computation rule (not Ch.VIII).
@@ -4482,7 +4503,7 @@ function downloadExcel(){
     [],
     ['DEDUCTIONS','','','',''],
     ['Employee PF (12%)','EPF Act / ITA 2025 Sec 123','',d.pfEe,Math.round(d.pfEe/12)],
-    ['Professional Tax','State Act','',2400,200],
+    ['Professional Tax','State Act','',d.profTax||2400,Math.round((d.profTax||2400)/12)],
     [`Income Tax TDS (${d.betterRegime==='new'?'New':'Old'} Regime)`,'Sec 192','',bestTax,Math.round(bestTax/12)],
     [],
     ['CTC EMPLOYER CONTRIBUTIONS (not in payslip)','','','',''],
@@ -4504,7 +4525,7 @@ function downloadExcel(){
     ['Less: Gratuity',d.gratExempt,d.gratExempt],
     ['Gross Taxable Salary',d.grossTaxOld,d.grossTaxNew],
     ['Less: Standard Deduction',50000,75000],
-    ['Less: Professional Tax [NOT in New Regime]',2400,'NIL'],
+    ['Less: Professional Tax [NOT in New Regime]',d.profTax||2400,'NIL'],
     ['Net Income',d.netOld,d.netNew],
     ['Section 123/80C',d.total80c,'NIL'],
     ['Section 33(8)/24(b) Home Loan',d.sec24b,'NIL'],
@@ -4612,7 +4633,8 @@ function printSlip(){
   const grossPay  = earnComps.reduce((s,c)=>s+c.val,0);
   const pfEeAnn   = d.pfEe||0;
   const tdsAnn    = d.bestTax;
-  const totalDed  = pfEeAnn + 2400 + tdsAnn;
+  const profTaxAnn = d.profTax||2400;
+  const totalDed  = pfEeAnn + profTaxAnn + tdsAnn;
   const inHandAnn = Math.max(0, grossPay - totalDed);
   const pfErAnn   = d.pfEr||0;
   const gratAnn   = d.grat||0;
@@ -4835,7 +4857,7 @@ function printSlip(){
 
       ${tH('🔻 DEDUCTIONS — Deducted Before You Receive Money', 5)}
       ${pfEeAnn>0?`<tr><td><b>Employee PF (12% of Basic)</b></td><td style="font-size:7.5pt;color:#555">Your share to Provident Fund — goes into your retirement account</td><td><span style="color:#1e40af;font-size:7pt;font-weight:700">Reduces tax (Old Regime)</span></td><td class="r mono">${f(pfEeAnn)}</td><td class="r mono">${fm(pfEeAnn)}</td></tr>`:''}
-      <tr><td><b>Professional Tax</b></td><td style="font-size:7.5pt;color:#555">State government tax on employment income</td><td><span style="color:#555;font-size:7pt">Both regimes</span></td><td class="r mono">₹2,400</td><td class="r mono">₹200</td></tr>
+      <tr><td><b>Professional Tax</b></td><td style="font-size:7.5pt;color:#555">State government tax on employment income</td><td><span style="color:#555;font-size:7pt">Old Regime deduction only</span></td><td class="r mono">${f(profTaxAnn)}</td><td class="r mono">${fm(profTaxAnn)}</td></tr>
       <tr><td><b>Income Tax (TDS)</b><br><span style="font-size:7pt;color:#888">${regime}</span></td><td style="font-size:7.5pt;color:#555">Tax deducted at source — paid directly to government</td><td><span style="color:#991b1b;font-size:7pt;font-weight:700">TDS Deducted</span></td><td class="r mono">${f(tdsAnn)}</td><td class="r mono">${fm(tdsAnn)}</td></tr>
       <tr class="tot"><td colspan="3"><b>📌 Total Deductions (B)</b></td><td class="r mono">${f(totalDed)}</td><td class="r mono">${fm(totalDed)}</td></tr>
 

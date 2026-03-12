@@ -4643,6 +4643,11 @@ function downloadVerificationExcel(){
     }
   }
 
+  if(candidates.length===0){
+    alert('No valid combinations found for current toggles/CTC. Please enable required components and try again.');
+    return;
+  }
+
   const goalMap={0:'Minimum Tax',1:'Max Take-Home',2:'Old Regime Best',3:'New Regime Best'};
   const selectedGoalIdx=(typeof _quickSelectedIdx==='number' && _quickSelectedIdx>=0)?_quickSelectedIdx:0;
   const selectedGoalLabel=goalMap[selectedGoalIdx]||'Minimum Tax';

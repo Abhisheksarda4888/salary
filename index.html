@@ -526,6 +526,12 @@ input:hover:not(:focus), select:hover:not(:focus) { border-color: var(--bd2); }
   box-shadow: 0 2px 12px var(--grn-glow);
 }
 .btn-green:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--grn-glow); }
+.btn-verify {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #fff; padding: 11px 18px; font-size: 13px;
+  box-shadow: 0 2px 12px rgba(37,99,235,.26);
+}
+.btn-verify:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(37,99,235,.3); }
 
 .calc-btn-wrap { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 .calc-main-btn { width: 100%; padding: 14px 20px; font-size: clamp(12px,3.2vw,15px); white-space: normal; line-height: 1.35; text-align: center; box-sizing: border-box; }
@@ -2626,6 +2632,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
       <div class="dl-bar-sub">Salary Slip · Tax Computation (both regimes) · Inputs &amp; Legal References</div>
     </div>
     <button class="btn btn-green" onclick="downloadExcel()">⬇ Download Excel (.xlsx)</button>
+    <button class="btn btn-verify" onclick="downloadVerificationExcel()">✅ Verify Calculations (Excel)</button>
     <button class="btn btn-primary" onclick="printSlip()" style="background:var(--ink)">🖨 Print / Save PDF</button>
   </div>
 
@@ -4569,6 +4576,95 @@ function downloadExcel(){
   XLSX.utils.book_append_sheet(wb,ws2,'Tax Computation');
   XLSX.utils.book_append_sheet(wb,ws3,'Legal References');
   XLSX.writeFile(wb,`SalaryStructure_${empName.replace(/\s+/g,'_')}_FY2026-27.xlsx`);
+}
+
+function downloadVerificationExcel(){
+  const d = calcTax();
+  const inp = inputs();
+  const empName = (document.getElementById('empName').value||'Employee').trim() || 'Employee';
+  const getVal = id => (comps.find(c=>c.id===id)?.val)||0;
+  const f = n => Math.round(n||0);
+  const wb = XLSX.utils.book_new();
+  const rows = [
+    ['PAYSTRUCTURE PRO — EXCEL VERIFICATION SHEET (Dynamic Formulas)'],
+    [`Employee`, empName, '', 'Edit input values in column B to back-test calculations.'],
+    [],
+    ['INPUTS', 'VALUE', '', ''],
+    ['CTC', f(inp.ctc)],
+    ['Basic', f(getVal('basic'))],
+    ['HRA', f(getVal('hra'))],
+    ['DA', f(getVal('da'))],
+    ['LTA', f(getVal('lta'))],
+    ['Meal Coupons', f(getVal('food'))],
+    ['Mobile Reimbursement', f(getVal('mobile'))],
+    ['Fuel Reimbursement', f(getVal('fuel'))],
+    ['Uniform Reimbursement', f(getVal('uniform'))],
+    ['Children Education Allowance', f(getVal('educ'))],
+    ['Hostel Allowance', f(getVal('hostel'))],
+    ['Special Allowance', f(getVal('special'))],
+    ['Employee PF', f(d.pfEe)],
+    ['Employer PF', f(d.pfEr)],
+    ['Gratuity', f(d.grat)],
+    ['Employer NPS', f(d.npsEr)],
+    ['Professional Tax (annual)', f(d.profTax||2400)],
+    ['Old Regime Deduction: Sec 123/80C', f(d.total80c)],
+    ['Old Regime Deduction: Home Loan Sec 33(8)', f(d.sec24b)],
+    ['Old Regime Deduction: Own NPS Sec 124(3)', f(d.sec80ccd1b)],
+    ['Rent Paid (annual)', f(inp.rentAnnual)],
+    ['City Type (Metro/Non-Metro)', inp.metro?'Metro':'Non-Metro'],
+    ['LTA Eligible Claim %', f(inp.ltaClaimPct*100)],
+    ['Bill-backed Reimbursement %', f(inp.reimbClaimPct*100)],
+    [],
+    ['CALCULATION CHECKS', 'FORMULA RESULT', 'FORMULA', ''],
+    ['Gross Salary', 0, '=SUM(B6:B15,B18:B20)'],
+    ['HRA Exemption (Old)', 0, '=MIN(B7,MAX(0,B25-0.1*(B6+B8)),IF(B26="Metro",0.5*(B6+B8),0.4*(B6+B8)))'],
+    ['LTA Exemption (Old)', 0, '=B9*B27/100'],
+    ['Meal Exemption (Old)', 0, '=MIN(B10,26400)'],
+    ['Mobile Exemption (Old)', 0, '=B11*B28/100'],
+    ['Fuel Exemption (Old)', 0, '=MIN(B12,21600)*(B28/100)'],
+    ['Uniform Exemption (Old)', 0, '=B13*B28/100'],
+    ['Education Exemption (Old)', 0, '=MIN(B14,2400)'],
+    ['Hostel Exemption (Old)', 0, '=MIN(B15,7200)'],
+    ['Old Gross Taxable Salary', 0, '=B31-B32-B33-B34-B35-B36-B37-B38-B39-B18-B19'],
+    ['New Gross Taxable Salary', 0, '=B31-B18-B19'],
+    ['Old Net Income', 0, '=MAX(0,B40-50000-B21)'],
+    ['New Net Income', 0, '=MAX(0,B41-75000)'],
+    ['Old Total Deductions', 0, '=B22+B23+B24+B20'],
+    ['New Total Deductions', 0, '=B20'],
+    ['Old Taxable Income', 0, '=MAX(0,B42-B44)'],
+    ['New Taxable Income', 0, '=MAX(0,B43-B45)'],
+    ['Website Old Tax (reference)', f(d.taxOld.total)],
+    ['Website New Tax (reference)', f(d.taxNew.total)],
+    ['Best Regime', d.betterRegime==='new'?'NEW':'OLD'],
+    ['Website Best Tax', f(d.bestTax)],
+    ['Website Monthly In-Hand', f(d.inHand)],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const formulaCells = {
+    B31:'SUM(B6:B15,B18:B20)',
+    B32:'MIN(B7,MAX(0,B25-0.1*(B6+B8)),IF(B26="Metro",0.5*(B6+B8),0.4*(B6+B8)))',
+    B33:'B9*B27/100',
+    B34:'MIN(B10,26400)',
+    B35:'B11*B28/100',
+    B36:'MIN(B12,21600)*(B28/100)',
+    B37:'B13*B28/100',
+    B38:'MIN(B14,2400)',
+    B39:'MIN(B15,7200)',
+    B40:'B31-B32-B33-B34-B35-B36-B37-B38-B39-B18-B19',
+    B41:'B31-B18-B19',
+    B42:'MAX(0,B40-50000-B21)',
+    B43:'MAX(0,B41-75000)',
+    B44:'B22+B23+B24+B20',
+    B45:'B20',
+    B46:'MAX(0,B42-B44)',
+    B47:'MAX(0,B43-B45)'
+  };
+  Object.entries(formulaCells).forEach(([addr,formula])=>{
+    ws[addr] = { t:'n', f:formula };
+  });
+  ws['!cols'] = [{wch:34},{wch:20},{wch:52},{wch:34}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Verify Calculations');
+  XLSX.writeFile(wb,`Verify_Calculations_${empName.replace(/\s+/g,'_')}.xlsx`);
 }
 
 // ══════════════════════════════════════════════════════════

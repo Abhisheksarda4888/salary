@@ -1,0 +1,110 @@
+from pathlib import Path
+
+xml = '''<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Bottom"/></Style>
+  <Style ss:ID="hdr"><Font ss:Bold="1" ss:Size="12"/><Interior ss:Color="#D9E1F2" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="sec"><Font ss:Bold="1"/><Interior ss:Color="#E2F0D9" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="money"><NumberFormat ss:Format="#,##0"/></Style>
+  <Style ss:ID="pct"><NumberFormat ss:Format="0.00%"/></Style>
+  <Style ss:ID="ok"><Font ss:Color="#008000" ss:Bold="1"/></Style>
+  <Style ss:ID="bad"><Font ss:Color="#C00000" ss:Bold="1"/></Style>
+ </Styles>
+ <Worksheet ss:Name="Backtest_Verifier">
+  <Table>
+   <Column ss:Width="260"/><Column ss:Width="170"/><Column ss:Width="210"/><Column ss:Width="170"/><Column ss:Width="170"/>
+   <Row><Cell ss:StyleID="hdr"><Data ss:Type="String">PayStructure Pro Backtest Verifier (Dynamic Excel XML)</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Edit only Input values in column B. All output cells are formula-driven.</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">INPUTS (Annual ₹ unless noted)</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Basic</Data></Cell><Cell><Data ss:Type="Number">420000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">DA</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">HRA</Data></Cell><Cell><Data ss:Type="Number">210000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">LTA</Data></Cell><Cell><Data ss:Type="Number">48000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Food Allowance</Data></Cell><Cell><Data ss:Type="Number">26400</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Mobile Allowance</Data></Cell><Cell><Data ss:Type="Number">24000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Fuel Allowance</Data></Cell><Cell><Data ss:Type="Number">21600</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Uniform Allowance</Data></Cell><Cell><Data ss:Type="Number">5000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Education Allowance</Data></Cell><Cell><Data ss:Type="Number">2400</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Hostel Allowance</Data></Cell><Cell><Data ss:Type="Number">7200</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Employee PF</Data></Cell><Cell><Data ss:Type="Number">21600</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Employer PF</Data></Cell><Cell><Data ss:Type="Number">21600</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Employer NPS</Data></Cell><Cell><Data ss:Type="Number">42000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Gratuity</Data></Cell><Cell><Data ss:Type="Number">20202</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Special Allowance</Data></Cell><Cell><Data ss:Type="Number">551998</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Rent Paid (annual)</Data></Cell><Cell><Data ss:Type="Number">240000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Metro? (1=yes,0=no)</Data></Cell><Cell><Data ss:Type="Number">1</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Rented house? (1=yes,0=no)</Data></Cell><Cell><Data ss:Type="Number">1</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">80C other investments</Data></Cell><Cell><Data ss:Type="Number">120000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Own NPS contribution</Data></Cell><Cell><Data ss:Type="Number">50000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Home loan interest</Data></Cell><Cell><Data ss:Type="Number">150000</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Professional tax</Data></Cell><Cell><Data ss:Type="Number">2400</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">LTA claim % (0-1)</Data></Cell><Cell ss:StyleID="pct"><Data ss:Type="Number">1</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Bill-backed reimbursement % (0-1)</Data></Cell><Cell ss:StyleID="pct"><Data ss:Type="Number">1</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">CORE CALC (matches website logic)</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Gross Salary</Data></Cell><Cell ss:StyleID="money" ss:Formula="=SUM(R4C2:R18C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">HRA Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(R21C2=1,MIN(R6C2,MAX(0,R19C2-(R4C2+R5C2)*0.1),(R4C2+R5C2)*IF(R20C2=1,0.5,0.4)),0)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">LTA Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R7C2,R7C2*R26C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Food Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R8C2,26400)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Mobile Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R9C2,R9C2*R27C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Fuel Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(MIN(R10C2,21600),MIN(R10C2,21600)*R27C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Uniform Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(MIN(R11C2,5000),MIN(R11C2,5000)*R27C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Education Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R12C2,2400)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Hostel Exempt (Old)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R13C2,7200)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Employer PF Exempt (Both)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R15C2,(R4C2+R5C2)*0.12)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Gratuity Exempt (Both)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R17C2,2000000)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Excess over 7.5L (PF+NPS employer)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,(R15C2+R16C2)-750000)"><Data ss:Type="Number">0</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">OLD REGIME TAX</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Total Old Exemptions</Data></Cell><Cell ss:StyleID="money" ss:Formula="=SUM(R30C2:R38C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Gross Taxable Old</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R29C2-R40C2+R41C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Net Old after std deduction + prof tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R42C2-50000-R25C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Sec123(80C) total</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R22C2+MIN(R14C2,150000),150000)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Sec33(8) home loan</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R24C2,200000)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Sec124(3) own NPS</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R23C2,50000)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Sec124(1)(b) employer NPS old</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R16C2,(R4C2+R5C2)*0.1)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Taxable Income Old</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R43C2-(R44C2+R45C2+R46C2+R47C2))"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Old slab base tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(R48C2&lt;=250000,0,IF(R48C2&lt;=500000,(R48C2-250000)*0.05,IF(R48C2&lt;=1000000,12500+(R48C2-500000)*0.2,112500+(R48C2-1000000)*0.3)))"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Old rebate (87A style)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(R48C2&lt;=500000,MIN(R49C2,12500),0)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Old tax before cess</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R49C2-R50C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Old cess 4%</Data></Cell><Cell ss:StyleID="money" ss:Formula="=R51C2*0.04"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Old total tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=ROUND(R51C2+R52C2,0)"><Data ss:Type="Number">0</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">NEW REGIME TAX</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Gross Taxable New</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R29C2-R39C2-R40C2+R41C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Net New after std deduction</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R55C2-75000)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Sec124(2) employer NPS new</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R16C2,(R4C2+R5C2)*0.14)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Taxable Income New</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R56C2-R57C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">New slab base tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(R58C2&lt;=400000,0,IF(R58C2&lt;=800000,(R58C2-400000)*0.05,IF(R58C2&lt;=1200000,20000+(R58C2-800000)*0.1,IF(R58C2&lt;=1600000,60000+(R58C2-1200000)*0.15,IF(R58C2&lt;=2000000,120000+(R58C2-1600000)*0.2,IF(R58C2&lt;=2400000,200000+(R58C2-2000000)*0.25,300000+(R58C2-2400000)*0.3))))))"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">New rebate (156(2) style)</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(R58C2&lt;=1200000,MIN(R59C2,60000),0)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">New tax after rebate</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MAX(0,R59C2-R60C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">12L marginal relief cap applied</Data></Cell><Cell ss:StyleID="money" ss:Formula="=IF(AND(R58C2&gt;1200000,R58C2&lt;1275000),MIN(R61C2,R58C2-1200000),R61C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">New cess 4%</Data></Cell><Cell ss:StyleID="money" ss:Formula="=R62C2*0.04"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">New total tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=ROUND(R62C2+R63C2,0)"><Data ss:Type="Number">0</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">FINAL DECISION / TAKE-HOME</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Better regime</Data></Cell><Cell ss:Formula="=IF(R64C2&lt;=R53C2,&quot;New&quot;,&quot;Old&quot;)"><Data ss:Type="String">New</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Best annual tax</Data></Cell><Cell ss:StyleID="money" ss:Formula="=MIN(R53C2,R64C2)"><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Monthly In-Hand</Data></Cell><Cell ss:StyleID="money" ss:Formula="=ROUND(((R29C2-R15C2-R16C2-R17C2)-R14C2-R25C2-R23C2-R66C2)/12,0)"><Data ss:Type="Number">0</Data></Cell></Row>
+
+   <Row><Cell ss:StyleID="sec"><Data ss:Type="String">APP CROSS-CHECK (paste website outputs in col D)</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Metric</Data></Cell><Cell><Data ss:Type="String">Excel calc</Data></Cell><Cell><Data ss:Type="String">App output (paste)</Data></Cell><Cell><Data ss:Type="String">Difference</Data></Cell><Cell><Data ss:Type="String">Status</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Tax Old</Data></Cell><Cell ss:Formula="=R53C2"><Data ss:Type="Number">0</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=RC[-2]-RC[-1]"><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=IF(ABS(RC[-1])&lt;=1,&quot;PASS&quot;,&quot;CHECK&quot;)"><Data ss:Type="String">PASS</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Tax New</Data></Cell><Cell ss:Formula="=R64C2"><Data ss:Type="Number">0</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=RC[-2]-RC[-1]"><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=IF(ABS(RC[-1])&lt;=1,&quot;PASS&quot;,&quot;CHECK&quot;)"><Data ss:Type="String">PASS</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Best Tax</Data></Cell><Cell ss:Formula="=R66C2"><Data ss:Type="Number">0</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=RC[-2]-RC[-1]"><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=IF(ABS(RC[-1])&lt;=1,&quot;PASS&quot;,&quot;CHECK&quot;)"><Data ss:Type="String">PASS</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Monthly In-Hand</Data></Cell><Cell ss:Formula="=R67C2"><Data ss:Type="Number">0</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=RC[-2]-RC[-1]"><Data ss:Type="Number">0</Data></Cell><Cell ss:Formula="=IF(ABS(RC[-1])&lt;=1,&quot;PASS&quot;,&quot;CHECK&quot;)"><Data ss:Type="String">PASS</Data></Cell></Row>
+  </Table>
+ </Worksheet>
+</Workbook>
+'''
+
+out = Path('Salary_Backtest_Verifier.xml')
+out.write_text(xml, encoding='utf-8')
+print(f"written {out}")
